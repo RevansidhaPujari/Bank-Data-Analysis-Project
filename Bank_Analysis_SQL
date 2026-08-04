@@ -1,0 +1,147 @@
+use bank_data;
+ describe bank;
+select*from bank limit 10;
+-- (1) Total Funded Amount--
+select concat(round(sum((Funded_amount)/1000000),2)," ","M") as Total_Loan_Funded_Amount from bank;
+
+-- (2) Total Collections of Loan--
+select concat(round(sum(Total_Pymnt)/1000000,2),"M")as Total_Collection from bank;
+
+-- (3)Total Loans---
+select count(Account_ID) as Total_Loans  from bank;
+ 
+-- (4)Total Interest--
+select concat(round((sum(Total_Rrec_int)/1000000),2),"M") as Total_Interest from bank;
+
+ -- (5) avg int of loans-----
+ select concat(round((avg(Int_Rate)*100),2),"%")  avgloan from bank;
+ 
+ -- (6) deliquent Loans --
+ select count(Is_Delinquent_Loan) from bank where Is_Delinquent_Loan= "yes";
+ 
+ -- (7)Default loans --
+ select count(Is_Default_Loan) from bank where Is_Default_Loan="Yes";
+  
+ -- (8)Deliquent loan Rate---------------(Sub Query)
+select Loan_Status,
+count(Account_ID) Total_Loans ,
+concat(
+round(
+count(Account_ID)*100/
+(select count(*) from bank 
+where Loan_Status in ('Fully Paid','Active Loan','Paid off')),2),'%') as Deliquent_Rate 
+from bank
+ where Loan_Status in ('Fully Paid','Active Loan','Paid off')
+group by Loan_Status 
+order by Total_Loans desc;
+
+-- (9) Default loan rate-----
+select Loan_Status,
+count(Account_ID) Total_Loans ,
+concat(
+round(
+count(Account_ID)*100/
+(select count(*) from bank 
+where Loan_Status  not in ('Fully Paid','Active Loan','Paid off')),2),'%') as Default_rate
+from bank
+ where Loan_Status  not in ('Fully Paid','Active Loan','Paid off')
+group by Loan_Status 
+order by Total_Loans desc;
+
+
+ -- (10) unverified Loan status--
+ select  sum(case 
+ when Verification_Status ="Not Verified" or
+  Verification_Status is Null then 1 
+  else 0 
+  end 
+  ) 
+  as Total_UnvarifiedLoans 
+  from bank;
+  
+  
+  -- OR--
+  select count(*) as Not_Verified_Loans from bank 
+  where Verification_Status="Not Verified" or 
+  Verification_Status is null;
+  
+  -- Verified_Loans --
+  select count(*) as Verified_Loans from bank 
+  where Verification_Status="Source Verified" or 
+  Verification_Status="Verified";
+  
+  --   -----------OR----------
+  
+  -- Using IN ---
+  select count(*) as Verified_Loans from bank 
+  where Verification_Status in ("Source Verified","Verified");
+  
+  -- (11)purpose Category wise loan--
+  select Purpose_Category,concat(round(sum(Loan_Amount)/1000000,2),"M") as Total_Loan_Amount
+  from bank
+  group by Purpose_Category
+  order by sum(loan_amount) desc limit 10;
+ 
+-- (12) Grade Wise Loan------
+select grade,
+concat(round(sum(Loan_Amount)/1000000,2),"M") Loan_Amount
+ from bank
+ group by grade
+ order by sum(Loan_Amount) 
+ desc limit 10;
+
+-- (13) State Wise Loan---------------
+select State_Name,
+concat(round(sum(Loan_Amount)/1000000,2),"M")  Total_Loan_Amount 
+from bank 
+group by State_Name 
+order by sum(Loan_Amount) 
+desc limit 10;
+
+
+-- (14)Loan Status Wise Loan----
+create view  Status_wise_loan as
+ select Loan_status,
+concat(round((sum(Loan_Amount)*100)/
+ (select sum(Loan_Amount) from bank),2),"%") as Loan_percentage from bank
+ group by Loan_Status 
+ order by sum(Loan_Amount) 
+ desc limit 10;
+ 
+ 
+ -- (15) Age group wise loan-------
+ select age,
+ round(sum(Loan_Amount)/1000000,2) Loan_amount from bank 
+ group by 
+ age order by
+ sum(Loan_Amount) desc;
+ 
+ -- (16)Loan Disbursement Trand------
+ select  Disbursement_Date_Years,
+ round(sum(Loan_Amount)/1000000,2) Loan_Amount 
+ from bank
+ group by Disbursement_Date_Years 
+ order by sum(Loan_Amount) ;
+
+ 
+-- (17)Region Wise loan --------------
+select Region_Name,
+round(sum(Loan_Amount)/1000000,2)  Total_Loans_M
+ from  bank
+ group by Region_Name 
+ order by sum(Loan_Amount) desc limit 10;
+
+ -- (18)Branch wise Performance --------------
+  select  Branch_Name,
+  round(sum(Loan_Amount)/1000000,2) as Total_LoanAmount,
+ round(sum(Total_Rrec_Int +Total_Fees)/1000000,2) as Total_Revenue
+ from bank group by Branch_Name order by Total_LoanAmount desc limit 10 ;
+ 
+ -- (19)Maturity Rate--------------
+ select concat(round(sum(case when Loan_status in ('Fully Paid','Paid off') then 1
+ else 0
+ end)*100/count(*),2),"%") as Loan_MaturityRate 
+ from bank;
+ select *from bank
+
+
