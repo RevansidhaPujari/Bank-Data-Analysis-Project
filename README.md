@@ -73,5 +73,5 @@ The project helped transform raw banking data into meaningful business insights 
 
 **Revansidha Pujari**
 
-Aspiring Data Analyst
+Aspiring Data Analyst.
 
